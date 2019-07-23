@@ -107,7 +107,7 @@ class gatherer:
                 self.seek_p = None
                 self.state = gatherer.state.GATHER
                 cmd = self.gather(ship, game)
-            elif game.game_map[ship.position].halite_amount < constants.MAX_HALITE / 10:
+            elif self._is_efficient_to_seek(ship, game):
                 move_dir = game.game_map.naive_navigate(ship, self.seek_p)
                 moves = []
                 if self.right_of_way:
@@ -141,7 +141,7 @@ class gatherer:
                         value = v
                         next_pos = p
                         
-            if next_pos is None or not self._is_efficient_to_move(ship, game, next_pos):
+            if next_pos is None or not self._is_efficient_to_gather(ship, game, next_pos):
                 cmd = ship.stay_still()
             else:
                 move_dir = game.game_map.naive_navigate(ship, next_pos)
@@ -164,14 +164,29 @@ class gatherer:
                 
         return cmd
         
-    def _is_efficient_to_move(self, ship, game, next_pos):
+    def _is_efficient_to_seek(self, ship, game):
+        seek = False
+        
+        cost_to_move = game.game_map[ship.position].halite_amount * 0.1
+        value_if_stay = game.game_map[ship.position].halite_amount * 0.25
+        
+        if cost_to_move <= ship.halite_amount:
+            seek = True
+        
+        if value_if_stay > (ship.halite_amount / 2):
+            seek = False
+        
+        return seek
+        
+    def _is_efficient_to_gather(self, ship, game, next_pos):
         move = False
         cost_to_move = game.game_map[ship.position].halite_amount * 0.1
         value_in_next_location = game.game_map[next_pos].halite_amount * 0.25
+        value_in_current_location = game.game_map[ship.position].halite_amount * 0.25
         
         logging.info("Cost to move: {}".format(cost_to_move))
         logging.info("Value in next: {}".format(value_in_next_location))
-        if cost_to_move <= ship.halite_amount and (value_in_next_location > (3 * cost_to_move)):
+        if cost_to_move <= ship.halite_amount and (value_in_next_location > (value_in_current_location + 3 * cost_to_move)):
             move = True
         
         logging.info("MOVE? : {}".format(move))
