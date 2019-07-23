@@ -80,6 +80,7 @@ class gatherer:
         self.state = gatherer.state.SEEK
         self.seek_p = None
         self.right_of_way = False
+        self.delay = False
     
     def update(self, ship, game):
         if self.state == gatherer.state.GATHER:
@@ -107,6 +108,9 @@ class gatherer:
                 self.seek_p = None
                 self.state = gatherer.state.GATHER
                 cmd = self.gather(ship, game)
+            elif self.delay:
+                cmd = ship.stay_still()
+                self.delay = False
             elif self._is_efficient_to_seek(ship, game):
                 move_dir = game.game_map.naive_navigate(ship, self.seek_p)
                 moves = []
@@ -114,8 +118,14 @@ class gatherer:
                     for pos in ship.position.get_surrounding_cardinals():
                         if not game.game_map[pos].is_occupied:
                             self.right_of_way = False
+                            self.delay = True
                             moves.append(game.game_map.naive_navigate(ship, pos))
-                    move_dir = random.choice(moves)
+                    
+                    if moves:
+                        move_dir = random.choice(moves)
+                    else:
+                        move_dir = (0,0)
+                        
                 elif move_dir == (0,0):
                     self.right_of_way = True
                     
