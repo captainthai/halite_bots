@@ -13,9 +13,6 @@ class director:
     def __init__(self, game):
         # select strategy based on map
         self.select_strategy(game)
-        positions = [x for x in Position(0,0).get_surrounding_cardinals()]
-        logging.info("Positions around (0,0)")
-        logging.info(positions)
         
     def update(self, game):
         command_queue = []
@@ -31,4 +28,4 @@ class director:
         if n_players == 2:
             self.strategy = STRAT.camp_enemy_base(game)
         else:
-            self.strategy = STRAT.gather_passive(game)
+            self.strategy = STRAT.camp_enemy_base_4p(game)
