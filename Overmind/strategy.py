@@ -19,6 +19,7 @@ class strategy:
 # =============================================================================
 class camp_enemy_base(strategy):
     def __init__(self, game):
+        self.MAX_SHIPS = calc_max_ships(game)
         self.gs = []
         self.fus = []
         self.stop_spawning = False
@@ -99,7 +100,7 @@ class camp_enemy_base(strategy):
 
         # If the game is in the first 200 turns and you have enough halite, spawn a ship.
         # Don't spawn a ship if you currently have a ship at port, though - the ships will collide.
-        if game.turn_number <= 150 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < 15 and not self.stop_spawning:
+        if game.turn_number <= (constants.MAX_TURNS - GAP.BUILD_FREEZE) and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < self.MAX_SHIPS and not self.stop_spawning:
             if (get_total_halite(game) > 50000):
                 command_queue.append(me.shipyard.spawn())
             else:
@@ -110,6 +111,7 @@ class camp_enemy_base(strategy):
 # =============================================================================
 class camp_enemy_base_4p(strategy):
     def __init__(self, game):
+        self.MAX_SHIPS = calc_max_ships(game)
         self.gs = []
         self.fus = []
         self.stop_spawning = False
@@ -189,7 +191,7 @@ class camp_enemy_base_4p(strategy):
 
         # If the game is in the first 200 turns and you have enough halite, spawn a ship.
         # Don't spawn a ship if you currently have a ship at port, though - the ships will collide.
-        if game.turn_number <= 150 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < 15 and not self.stop_spawning:
+        if game.turn_number <= (constants.MAX_TURNS - GAP.BUILD_FREEZE) and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < self.MAX_SHIPS and not self.stop_spawning:
             if (get_total_halite(game) > 50000):
                 command_queue.append(me.shipyard.spawn())
             else:
@@ -199,7 +201,8 @@ class camp_enemy_base_4p(strategy):
 
 # =============================================================================
 class gather_passive(strategy):
-    def __init__(self):
+    def __init__(self, game):
+        self.MAX_SHIPS = calc_max_ships(game)
         self.gs = []
         self.ds = []
         self.stop_spawning = False
@@ -298,7 +301,7 @@ class gather_passive(strategy):
                 
         # If the game is in the first 200 turns and you have enough halite, spawn a ship.
         # Don't spawn a ship if you currently have a ship at port, though - the ships will collide.
-        if game.turn_number <= 150 and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < 15 and not self.stop_spawning:
+        if game.turn_number <= (constants.MAX_TURNS - GAP.BUILD_FREEZE) and me.halite_amount >= constants.SHIP_COST and not game_map[me.shipyard].is_occupied and len(me.get_ships()) < self.MAX_SHIPS and not self.stop_spawning:
             if (get_total_halite(game) > 50000):
                 command_queue.append(me.shipyard.spawn())
             else:

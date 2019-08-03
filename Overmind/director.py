@@ -13,7 +13,7 @@ import Overmind.strategy as STRAT
 class director:
     def __init__(self, game):
         # select strategy based on map
-        self.strategy = STRAT.gather_passive()
+        self.strategy = STRAT.gather_passive(game)
         
     def update(self, game):
         command_queue = []

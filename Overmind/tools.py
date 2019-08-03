@@ -5,6 +5,8 @@ import hlt
 from hlt import constants
 from hlt.positionals import Direction
 
+from Overmind.ga_param import Params as GAP
+
 import logging
 import math
 
@@ -19,10 +21,15 @@ def get_total_halite(game):
     return halite
 
 # =============================================================================
+def calc_max_ships(game):
+    max_ships = int((GAP.MAX_SHIPS_X / game.game_map.width) + (GAP.MAX_SHIPS_Y / get_total_halite(game)))
+    return max_ships
+    
+# =============================================================================
 # get targets - find the places with the most concentrated halite on the map
 # =============================================================================
 def get_targets(game, n):
-    p_dist = list(range(-2, 3))
+    p_dist = list(range(-GAP.TARGET_SIZE, GAP.TARGET_SIZE+1))
     map_values = {}
     
     for x in range(game.game_map.width):
@@ -40,8 +47,7 @@ def get_targets(game, n):
             dist = game.game_map.calculate_distance(game.me.shipyard.position, p)
             max_dist = math.sqrt((game.game_map.width*game.game_map.width/4) + (game.game_map.height*game.game_map.height/4))
             
-            d_max = 4
-            d_value = 1 + ((dist / max_dist) * (d_max - 1))
+            d_value = 1 + ((dist / max_dist) * (GAP.DSCALE - 1))
             
             value = value / d_value
 
@@ -77,14 +83,13 @@ def assign_targets(game, gs):
             
     # now scale the values for each ship we want to assign
     max_dist = math.sqrt((game.game_map.width*game.game_map.width/4) + (game.game_map.height*game.game_map.height/4))
-    d_max = 4
     
     for g in gs:
         if game.me.has_ship(g.id):
             temp_map_vals = {}
             for pos, val in map_values.items():
                 dist = game.game_map.calculate_distance(game.me.get_ship(g.id).position, pos)
-                d_value = 1 + ((dist / max_dist) * (d_max - 1))
+                d_value = 1 + ((dist / max_dist) * (GAP.DSCALE - 1))
                 temp_map_vals[pos] = val / d_value
             
             # now sort and assign
