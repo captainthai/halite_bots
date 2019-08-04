@@ -206,7 +206,7 @@ class gatherer:
                 else:
                     cmd = ship.stay_still()
             else:
-                cmd = self._random_move()
+                cmd = self._random_move(game, ship)
                 
         return cmd
         
