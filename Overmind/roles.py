@@ -108,11 +108,12 @@ class gatherer:
         self.state = gatherer.state.SEEK
         self.seek_pos = None
         self.seek_path = None
+        self.idle_count = 0
     
     def update(self, ship, game):
         # if we are getting close to the end of the game, make sure
         # to return resources before the time is up
-        if game.turn_number >= constants.MAX_TURNS - game.game_map.calculate_distance(ship.position, game.me.shipyard.position) - 4:
+        if game.turn_number >= constants.MAX_TURNS - game.game_map.calculate_distance(ship.position, game.me.shipyard.position) - (4 + ((game.game_map.width - 32)/2)):
             self.state = gatherer.state.COLLAPSE
         
         if self.state == gatherer.state.GATHER:
@@ -172,11 +173,12 @@ class gatherer:
                 # something is blocking the path, get a new one
                 self.seek_pos = None
                 self.seek_path = None
-                cmd = ship.stay_still()
+                cmd = self._random_move(game, ship)
+                logging.info("seeker {} moving randomly {}".format(ship.id, cmd))
             else:
                 cmd = ship.move(move_dir)
         else:
-            cmd = ship.stay_still()
+            cmd = self._random_move(game, ship)
             
         return cmd
         
@@ -196,12 +198,15 @@ class gatherer:
                         value = v
                         next_pos = p
                         
-            if next_pos is None or not self._is_efficient_to_gather(ship, game, next_pos):
-                cmd = ship.stay_still()
+            if next_pos:
+                if self._is_efficient_to_gather(ship, game, next_pos):
+                    move_dir = game.game_map.naive_navigate(ship, next_pos)
+                    cmd = ship.move(move_dir)
+                    game.game_map[next_pos].mark_unsafe(ship)
+                else:
+                    cmd = ship.stay_still()
             else:
-                move_dir = game.game_map.naive_navigate(ship, next_pos)
-                cmd = ship.move(move_dir)
-                game.game_map[next_pos].mark_unsafe(ship)
+                cmd = self._random_move()
                 
         return cmd
         
@@ -213,7 +218,15 @@ class gatherer:
             # go home
             if game.game_map[ship.position].halite_amount < constants.MAX_HALITE / 10 or ship.is_full:
                 move_dir = game.game_map.naive_navigate(ship, game.me.shipyard.position)
-                cmd = ship.move(move_dir)
+                if move_dir == (0,0):
+                    self.idle_count += 1
+                    if self.idle_count == 3:
+                        cmd = self._random_move(game, ship)
+                    else:
+                        cmd = ship.stay_still()
+                else:
+                    cmd = ship.move(move_dir)
+                    self.idle_count = 0
             else:
                 cmd = ship.stay_still()
                 
@@ -263,4 +276,16 @@ class gatherer:
         
         logging.info("MOVE? : {}".format(move))
         return move
+        
+    def _random_move(self, game, ship):
+        moves = ship.position.get_surrounding_cardinals()
+        moves = [p for p in moves if not game.game_map[p].is_occupied]
+        if moves:
+            move_pos = random.choice(moves)
+            move_dir = game.game_map.naive_navigate(ship, move_pos)
+            cmd = ship.move(move_dir)
+            game.game_map[move_pos].mark_unsafe(ship)
+        else:
+            cmd = ship.stay_still()
+        return cmd
         

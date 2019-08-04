@@ -22,7 +22,7 @@ def get_total_halite(game):
 
 # =============================================================================
 def calc_max_ships(game):
-    max_ships = int((GAP.MAX_SHIPS_X / game.game_map.width) + (GAP.MAX_SHIPS_Y / get_total_halite(game)))
+    max_ships = int((GAP.MAX_SHIPS_X * game.game_map.width) + (GAP.MAX_SHIPS_Y / get_total_halite(game))/len(game.players))
     return max_ships
     
 # =============================================================================
@@ -135,6 +135,8 @@ def get_path(game, p1, p2, unsafe=False):
     leaf_nodes = []
     
     head_node = start_node
+    max_iter = game.game_map.width * 3
+    iter = 0
     while True:
         # get new leaf nodes
         new_leaf_positions = head_node.p.get_surrounding_cardinals()
@@ -177,6 +179,10 @@ def get_path(game, p1, p2, unsafe=False):
         else:
             leaf_nodes.sort(key=lambda node: node.cost + node.h)
             head_node = leaf_nodes.pop(0)
+        
+        iter += 1
+        if iter > max_iter:
+            return None
 
 # =============================================================================            
 def get_closest_ship(game, pos, ship_list):

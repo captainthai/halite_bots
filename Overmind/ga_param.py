@@ -1,6 +1,6 @@
 class Params:
-    DSCALE = 3
-    TARGET_SIZE = 4
-    BUILD_FREEZE = 210
-    MAX_SHIPS_X = 797
-    MAX_SHIPS_Y = 472052
+    DSCALE = 24
+    TARGET_SIZE = 6
+    BUILD_FREEZE = 215
+    MAX_SHIPS_X = 0.7
+    MAX_SHIPS_Y = 502944
